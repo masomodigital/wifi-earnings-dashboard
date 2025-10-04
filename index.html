@@ -104,13 +104,18 @@
   </div>
 
   <!-- Dashboard Card -->
-  <div id="dashboard" style="display:none;">
-    <div class="card">
-      <div class="title">Earnings Summary</div>
-      <p><b>Total Earnings:</b> KES <span id="totalEarnings"></span></p>
-      <p><b>Available Balance:</b> KES <span id="availableBalance"></span></p>
-      <button class="btn btn-logout" onclick="logout()">Logout</button>
-    </div>
+<div id="dashboard" style="display:none;">
+  <div class="card">
+    <div class="title">Earnings Summary</div>
+    <p><b>Total Earnings:</b> KES <span id="totalEarnings"></span></p>
+    <p><b>Available Balance:</b> KES <span id="availableBalance"></span></p>
+
+    <button class="btn" style="background:#28a745;" 
+            onclick="window.location.href='https://masomodigital.github.io/wifi-withdraw/'">
+      Withdraw
+    </button>
+    <button class="btn btn-logout" onclick="logout()">Logout</button>
+  </div>
 
     <div class="card">
       <div class="title">Recent Transactions</div>
