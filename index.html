@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .btn-login { background: #007bff; }
+    .btn-logout { background: #dc3545; }
+    .processing {
+      font-weight: bold;
+      color: green;
+      margin-top: 10px;
+      display: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+    th {
+      background: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Card -->
+  <div class="card" id="loginCard">
+    <div class="title">Seller Login</div>
+    <input type="text" id="sellerId" placeholder="Enter SellerID">
+    <button class="btn btn-login" onclick="login()">Login</button>
+    <div id="loginProcessing" class="processing">Wait... Processing</div>
+  </div>
+
+  <!-- Dashboard Card -->
+  <div id="dashboard" style="display:none;">
+    <div class="card">
+      <div class="title">Earnings Summary</div>
+      <p><b>Total Earnings:</b> KES <span id="totalEarnings"></span></p>
+      <p><b>Available Balance:</b> KES <span id="availableBalance"></span></p>
+      <button class="btn btn-logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card">
+      <div class="title">Recent Transactions</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Payment Ref</th>
+            <th>Amount Paid (KES)</th>
+            <th>Seller Share (KES)</th>
+            <th>Withdrawn</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="txnTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const WORKER_URL = 'https://tight-rice-50bb.ev-dmaundu.workers.dev/';
+
+    let currentSeller = null;
+
+    async function login() {
+      const sellerId = document.getElementById("sellerId").value.trim();
+      if (!sellerId) {
+        alert("Please enter SellerID");
+        return;
+      }
+
+      document.getElementById("loginProcessing").style.display = "block";
+
+      try {
+        const response = await fetch(`${WORKER_URL}?testSeller=${encodeURIComponent(sellerId)}`);
+        const data = await response.json();
+        showDashboard(data);
+      } catch (err) {
+        alert("Error fetching data: " + err.message);
+      } finally {
+        document.getElementById("loginProcessing").style.display = "none";
+      }
+    }
+
+    function showDashboard(data) {
+      if (!data || data.success === false) {
+        alert(data && data.message ? data.message : "No data found.");
+        return;
+      }
+
+      currentSeller = data.sellerId;
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("loginCard").style.display = "none";
+
+      document.getElementById("totalEarnings").textContent = data.totalEarnings.toFixed(2);
+      document.getElementById("availableBalance").textContent = data.availableBalance.toFixed(2);
+
+      const table = document.getElementById("txnTable");
+      table.innerHTML = "";
+      data.recent.forEach(txn => {
+        const row = `<tr>
+          <td>${txn.ref}</td>
+          <td>${txn.amountPaid.toFixed(2)}</td>
+          <td>${txn.sellerShare.toFixed(2)}</td>
+          <td>${txn.withdrawn}</td>
+          <td>${txn.timestamp}</td>
+        </tr>`;
+        table.innerHTML += row;
+      });
+    }
+
+    function logout() {
+      currentSeller = null;
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("loginCard").style.display = "block";
+      document.getElementById("sellerId").value = "";
+    }
+  </script>
+</body>
+</html>
